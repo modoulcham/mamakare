@@ -21,7 +21,15 @@ import {
   UserRound,
   Stethoscope,
 } from "lucide-react";
-import { Section, Pill, Empty, Loading, riskTone, GestationalTracker, MetricCard } from "@/components/ui-kit";
+import {
+  Section,
+  Pill,
+  Empty,
+  Loading,
+  riskTone,
+  GestationalTracker,
+  MetricCard,
+} from "@/components/ui-kit";
 import { ReportPreview } from "@/components/report-preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,6 +152,7 @@ function PatientDetail() {
               ["Name", reportTitle],
               ["Patient ID", patient.patient_number],
               ["Status", patient.status],
+              ["Gender", patient.gender],
               ["Date of birth", reportDate(patient.date_of_birth)],
               ["Phone", patient.phone],
               ["Address", patient.address],
@@ -229,12 +238,14 @@ function PatientDetail() {
               ? investigations.flatMap((item, index) =>
                   rows([
                     [`Investigation ${index + 1} · name`, item.name],
+                    [`Investigation ${index + 1} · type`, item.lab_type],
                     [`Investigation ${index + 1} · status`, item.status],
                     [`Investigation ${index + 1} · abnormal`, item.abnormal],
                     [`Investigation ${index + 1} · result`, item.result],
                     [`Investigation ${index + 1} · result date`, reportDate(item.result_date)],
                     [`Investigation ${index + 1} · due date`, reportDate(item.due_date)],
                     [`Investigation ${index + 1} · notes`, item.notes],
+                    ...resultDataRows(item.result_data, `Investigation ${index + 1}`),
                   ]),
                 )
               : [],
@@ -616,15 +627,14 @@ function PatientDetail() {
                     <Detail
                       label="LMP Date"
                       value={
-                        activePregnancy.lmp_date ? formatDate(activePregnancy.lmp_date) : "Not recorded"
+                        activePregnancy.lmp_date
+                          ? formatDate(activePregnancy.lmp_date)
+                          : "Not recorded"
                       }
                     />
                     <Detail label="Gravida" value={String(activePregnancy.gravida ?? "—")} />
                     <Detail label="Parity" value={String(activePregnancy.parity ?? "—")} />
-                    <Detail
-                      label="Risk level"
-                      value={activePregnancy.risk_level || "standard"}
-                    />
+                    <Detail label="Risk level" value={activePregnancy.risk_level || "standard"} />
                     {activePregnancy.risk_factors && (
                       <Detail label="Risk factors" value={activePregnancy.risk_factors} />
                     )}
@@ -650,7 +660,9 @@ function PatientDetail() {
                 <dl className="grid gap-3 text-sm">
                   <Detail
                     label="Date of birth"
-                    value={patient.date_of_birth ? formatDate(patient.date_of_birth) : "Not recorded"}
+                    value={
+                      patient.date_of_birth ? formatDate(patient.date_of_birth) : "Not recorded"
+                    }
                   />
                   <Detail
                     label="Location"
@@ -842,7 +854,8 @@ function PatientDetail() {
                       </div>
                       <div className="mt-2 text-xs text-muted-foreground space-y-1">
                         <p className="capitalize">
-                          <strong>Type:</strong> {appointment.appointment_type} · {appointment.location}
+                          <strong>Type:</strong> {appointment.appointment_type} ·{" "}
+                          {appointment.location}
                         </p>
                         {appointment.reason && (
                           <p>
@@ -909,9 +922,7 @@ function PatientDetail() {
                             <strong>Result:</strong> {item.result}
                           </p>
                         )}
-                        {item.result_date && (
-                          <p>Result date: {formatDate(item.result_date)}</p>
-                        )}
+                        {item.result_date && <p>Result date: {formatDate(item.result_date)}</p>}
                         {item.due_date && <p>Due: {formatDate(item.due_date)}</p>}
                         {item.notes && <p>Notes: {item.notes}</p>}
                       </div>
@@ -977,7 +988,9 @@ function PatientDetail() {
                     </div>
                     <div className="text-xs text-muted-foreground space-y-0.5">
                       <p>
-                        <strong>Dosage:</strong> {[item.dose, item.frequency, item.route].filter(Boolean).join(" · ") || "Not specified"}
+                        <strong>Dosage:</strong>{" "}
+                        {[item.dose, item.frequency, item.route].filter(Boolean).join(" · ") ||
+                          "Not specified"}
                       </p>
                       {item.duration && <p>Duration: {item.duration}</p>}
                       {item.instructions && <p>Instructions: {item.instructions}</p>}
@@ -1012,7 +1025,9 @@ function PatientDetail() {
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-0.5">
-                      <p><strong>Reason:</strong> {item.reason}</p>
+                      <p>
+                        <strong>Reason:</strong> {item.reason}
+                      </p>
                       {item.notes && <p>Notes: {item.notes}</p>}
                       {item.referred_at && <p>Referred: {formatDateTime(item.referred_at)}</p>}
                     </div>
@@ -1029,11 +1044,9 @@ function PatientDetail() {
         <div className="space-y-6">
           <Section title="Demographic & Medical Profile" icon={UserRound}>
             <dl className="grid gap-4 sm:grid-cols-2 text-sm">
-              <Detail
-                label="Full name"
-                value={`${patient.first_name} ${patient.last_name}`}
-              />
+              <Detail label="Full name" value={`${patient.first_name} ${patient.last_name}`} />
               <Detail label="Patient ID" value={patient.patient_number} />
+              <Detail label="Gender" value={patient.gender || "Not recorded"} />
               <Detail
                 label="Date of birth"
                 value={
@@ -1056,14 +1069,8 @@ function PatientDetail() {
               <Detail label="Residential address" value={patient.address || "Not recorded"} />
               <Detail label="Blood group" value={patient.blood_group || "Not recorded"} />
               <Detail label="Known allergies" value={patient.allergies || "None recorded"} />
-              <Detail
-                label="Medical history"
-                value={patient.medical_history || "None recorded"}
-              />
-              <Detail
-                label="Next of kin"
-                value={patient.next_of_kin_name || "Not recorded"}
-              />
+              <Detail label="Medical history" value={patient.medical_history || "None recorded"} />
+              <Detail label="Next of kin" value={patient.next_of_kin_name || "Not recorded"} />
               <Detail
                 label="Next of kin phone"
                 value={patient.next_of_kin_phone || "Not recorded"}
@@ -1209,12 +1216,16 @@ function EditRecordDialog({
         .eq("patient_id", patientId);
       error = result.error;
     } else if (editing.kind === "investigation") {
+      const labType = String(values.get("lab_type") || editing.record.lab_type || "other");
       const result = await supabase
         .from("investigations")
         .update({
-          name: String(values.get("name") || "Investigation"),
+          name: labTypeLabel(labType),
+          lab_type: labType,
           status: String(values.get("status") || "recommended"),
           due_date: stringOrNull(values.get("due_date")),
+          result_date: stringOrNull(values.get("result_date")),
+          result_data: readLabResults(values),
           notes: stringOrNull(values.get("notes")),
         })
         .eq("id", editing.record.id)
@@ -1366,19 +1377,7 @@ function EditEncounterFields({ record }: { record: Encounter }) {
 }
 
 function EditInvestigationFields({ record }: { record: Investigation }) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Field label="Investigation name" name="name" required defaultValue={record.name} />
-      <SelectField
-        label="Status"
-        name="status"
-        options={["recommended", "ordered", "completed", "declined"]}
-        defaultValue={record.status}
-      />
-      <Field label="Due date" name="due_date" type="date" defaultValue={record.due_date || ""} />
-      <Field label="Notes" name="notes" defaultValue={record.notes || ""} />
-    </div>
-  );
+  return <LaboratoryFields record={record} />;
 }
 
 function EditAppointmentFields({ record }: { record: Appointment }) {
@@ -1519,12 +1518,16 @@ function CareActions({
       });
       error = result.error;
     } else if (action === "investigation") {
+      const labType = String(values.get("lab_type") || "other");
       const result = await supabase.from("investigations").insert({
         patient_id: patientId,
         pregnancy_id: pregnancyId ?? null,
-        name: String(values.get("name") || "Investigation"),
+        name: labTypeLabel(labType),
+        lab_type: labType,
         status: String(values.get("status") || "recommended"),
         due_date: stringOrNull(values.get("due_date")),
+        result_date: stringOrNull(values.get("result_date")),
+        result_data: readLabResults(values),
         notes: stringOrNull(values.get("notes")),
       });
       error = result.error;
@@ -1764,16 +1767,201 @@ function VitalsFields({ record }: { record?: Encounter }) {
 }
 
 function InvestigationFields() {
+  return <LaboratoryFields />;
+}
+
+const LAB_TYPES = [
+  "blood_sugar",
+  "hemoglobin",
+  "urinalysis",
+  "syphilis",
+  "gonorrhea",
+  "chlamydia",
+  "hiv",
+  "blood_group",
+  "semen_analysis",
+] as const;
+
+type LabType = (typeof LAB_TYPES)[number];
+
+function labTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    blood_sugar: "Blood sugar",
+    hemoglobin: "Hemoglobin (Hb)",
+    urinalysis: "Urinalysis",
+    syphilis: "Syphilis",
+    gonorrhea: "Gonorrhea",
+    chlamydia: "Chlamydia",
+    hiv: "HIV",
+    blood_group: "Blood group",
+    semen_analysis: "Semen analysis",
+  };
+  return labels[type] || "Laboratory investigation";
+}
+
+function LaboratoryFields({ record }: { record?: Investigation }) {
+  const initialType = (record?.lab_type as LabType | null) || "blood_sugar";
+  const [labType, setLabType] = useState<LabType>(
+    LAB_TYPES.includes(initialType) ? initialType : "blood_sugar",
+  );
+  const resultData = isJsonObject(record?.result_data) ? record.result_data : {};
+  const value = (name: string) => {
+    const entry = resultData[name];
+    return typeof entry === "string" || typeof entry === "number" ? entry : "";
+  };
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Field label="Investigation name *" name="name" placeholder="e.g. Hemoglobin" required />
-      <SelectField
-        label="Status"
-        name="status"
-        options={["recommended", "ordered", "completed", "declined"]}
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          label="Laboratory test"
+          name="lab_type"
+          options={[...LAB_TYPES]}
+          defaultValue={initialType}
+          onChange={(next) => setLabType(next as LabType)}
+        />
+        <SelectField
+          label="Status"
+          name="status"
+          options={["recommended", "ordered", "completed", "declined"]}
+          defaultValue={record?.status ?? "recommended"}
+        />
+        <Field
+          label="Test date"
+          name="result_date"
+          type="date"
+          defaultValue={record?.result_date || ""}
+        />
+        <Field label="Due date" name="due_date" type="date" defaultValue={record?.due_date || ""} />
+      </div>
+      <div className="rounded-2xl border border-border/70 bg-primary-soft/20 p-4">
+        <p className="mb-3 text-sm font-semibold">{labTypeLabel(labType)} results</p>
+        {labType === "blood_sugar" && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <SelectField
+              label="Sample"
+              name="lab_sample"
+              options={["fasting", "random", "post_prandial"]}
+              defaultValue={String(value("sample") || "random")}
+            />
+            <Field
+              label="Glucose value"
+              name="lab_glucose"
+              type="number"
+              step="0.1"
+              defaultValue={value("glucose")}
+            />
+            <Field
+              label="Unit"
+              name="lab_glucose_unit"
+              defaultValue={String(value("glucose_unit") || "mmol/L")}
+            />
+          </div>
+        )}
+        {labType === "hemoglobin" && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Hemoglobin (g/dL)"
+              name="lab_hb"
+              type="number"
+              step="0.1"
+              defaultValue={value("hb")}
+            />
+            <Field label="Comment" name="lab_comment" defaultValue={value("comment")} />
+          </div>
+        )}
+        {labType === "urinalysis" && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(
+              [
+                ["colour", "Colour"],
+                ["appearance", "Appearance"],
+                ["ph", "pH"],
+                ["specific_gravity", "Specific gravity"],
+                ["protein", "Protein"],
+                ["glucose", "Glucose"],
+                ["ketones", "Ketones"],
+                ["blood", "Blood"],
+                ["nitrite", "Nitrite"],
+                ["leukocytes", "Leukocytes"],
+                ["bilirubin", "Bilirubin"],
+                ["urobilinogen", "Urobilinogen"],
+                ["wbc", "WBC / hpf"],
+                ["rbc", "RBC / hpf"],
+                ["epithelial_cells", "Epithelial cells"],
+                ["casts", "Casts"],
+                ["crystals", "Crystals"],
+                ["urinalysis_notes", "Microscopy notes"],
+              ] as Array<[string, string]>
+            ).map(([name, label]) => (
+              <Field key={name} label={label} name={`lab_${name}`} defaultValue={value(name)} />
+            ))}
+          </div>
+        )}
+        {["syphilis", "gonorrhea", "chlamydia", "hiv"].includes(labType) && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label="Result"
+              name="lab_result"
+              options={["negative", "positive", "indeterminate", "not_done"]}
+              defaultValue={String(value("result") || "negative")}
+            />
+            <Field label="Comment" name="lab_comment" defaultValue={value("comment")} />
+          </div>
+        )}
+        {labType === "blood_group" && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label="ABO group"
+              name="lab_abo"
+              options={["A", "B", "AB", "O"]}
+              defaultValue={String(value("abo") || "O")}
+            />
+            <SelectField
+              label="Rhesus"
+              name="lab_rhesus"
+              options={["positive", "negative"]}
+              defaultValue={String(value("rhesus") || "positive")}
+            />
+          </div>
+        )}
+        {labType === "semen_analysis" && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(
+              [
+                ["volume_ml", "Volume (mL)"],
+                ["appearance", "Appearance"],
+                ["liquefaction", "Liquefaction"],
+                ["ph", "pH"],
+                ["concentration", "Concentration (million/mL)"],
+                ["total_count", "Total count (million)"],
+                ["progressive_motility", "Progressive motility (%)"],
+                ["non_progressive_motility", "Non-progressive motility (%)"],
+                ["immotile", "Immotile (%)"],
+                ["morphology", "Normal morphology (%)"],
+                ["vitality", "Vitality (%)"],
+                ["leukocytes", "Leukocytes"],
+                ["semen_notes", "Notes"],
+              ] as Array<[string, string]>
+            ).map(([name, label]) => (
+              <Field
+                key={name}
+                label={label}
+                name={`lab_${name}`}
+                type={name === "appearance" || name.endsWith("notes") ? "text" : "number"}
+                step="0.1"
+                defaultValue={value(name)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <TextField
+        label="Notes"
+        name="notes"
+        placeholder="Laboratory comments or interpretation"
+        defaultValue={record?.notes || ""}
       />
-      <Field label="Due date" name="due_date" type="date" />
-      <Field label="Notes" name="notes" placeholder="Optional" />
     </div>
   );
 }
@@ -1943,11 +2131,13 @@ function SelectField({
   name,
   options,
   defaultValue,
+  onChange,
 }: {
   label: string;
   name: string;
   options: string[];
   defaultValue?: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <div className="space-y-2">
@@ -1956,6 +2146,7 @@ function SelectField({
         id={name}
         name={name}
         defaultValue={defaultValue ?? options[0]}
+        onChange={(event) => onChange?.(event.target.value)}
         className="h-11 w-full rounded-xl border border-input bg-background/80 px-3 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-ring"
       >
         {options.map((option) => (
@@ -1993,13 +2184,71 @@ function numberOrNull(value: FormDataEntryValue | null | undefined) {
   return stringValue ? Number(stringValue) : null;
 }
 
+function readLabResults(values: FormData): Record<string, string> {
+  const fields = [
+    "sample",
+    "glucose",
+    "glucose_unit",
+    "hb",
+    "comment",
+    "colour",
+    "appearance",
+    "ph",
+    "specific_gravity",
+    "protein",
+    "glucose",
+    "ketones",
+    "blood",
+    "nitrite",
+    "leukocytes",
+    "bilirubin",
+    "urobilinogen",
+    "wbc",
+    "rbc",
+    "epithelial_cells",
+    "casts",
+    "crystals",
+    "urinalysis_notes",
+    "result",
+    "abo",
+    "rhesus",
+    "volume_ml",
+    "liquefaction",
+    "concentration",
+    "total_count",
+    "progressive_motility",
+    "non_progressive_motility",
+    "immotile",
+    "morphology",
+    "vitality",
+    "semen_notes",
+  ];
+  return Object.fromEntries(
+    fields
+      .map((field) => [field, stringOrNull(values.get(`lab_${field}`))] as const)
+      .filter((entry): entry is readonly [string, string] => entry[1] !== null),
+  );
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function resultDataRows(value: unknown, prefix: string): Array<[string, unknown]> {
+  if (!isJsonObject(value)) return [];
+  return Object.entries(value).map(([key, entry]) => [
+    `${prefix} · ${key.replaceAll("_", " ")}`,
+    entry,
+  ]);
+}
+
 function actionLabel(action: CareAction) {
   return action === "pregnancy"
     ? "Pregnancy"
     : action === "encounter"
       ? "Clinical encounter"
       : action === "investigation"
-        ? "Investigation"
+        ? "Lab investigations"
         : action === "appointment"
           ? "Appointment"
           : action === "prescription"

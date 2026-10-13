@@ -26,6 +26,7 @@ const schema = z.object({
   first_name: z.string().trim().min(1, "Required").max(80),
   last_name: z.string().trim().min(1, "Required").max(80),
   date_of_birth: opt,
+  gender: opt,
   phone: opt,
   address: opt,
   village_town: opt,
@@ -125,6 +126,20 @@ function NewPatient() {
                 <F name="first_name" label="First name *" />
                 <F name="last_name" label="Last name *" />
                 <F name="date_of_birth" label="Date of birth" type="date" />
+                <div className="space-y-2">
+                  <Label htmlFor="gender" className="text-[13px] font-semibold text-foreground/85">
+                    Gender
+                  </Label>
+                  <select
+                    id="gender"
+                    {...register("gender")}
+                    className="h-12 w-full rounded-xl border border-border/80 bg-background/80 px-4 text-sm focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                  </select>
+                </div>
                 <F name="phone" label="Phone number" type="tel" />
               </div>
             </div>
@@ -208,7 +223,8 @@ function NewPatient() {
             </div>
             <p className="text-base font-bold font-display">New patient record</p>
             <p className="mt-1.5 text-xs leading-5 text-primary-foreground/85">
-              Accurate registration data ensures safer antenatal, labor, and postnatal continuity of care.
+              Accurate registration data ensures safer antenatal, labor, and postnatal continuity of
+              care.
             </p>
           </div>
           <div className="card-surface p-5">
